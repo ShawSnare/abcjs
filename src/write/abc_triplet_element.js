@@ -53,7 +53,7 @@ var TripletElem;
 		if (this.anchor1 && this.anchor2) {
 			this.hasBeam = !!this.anchor1.parent.beam && this.anchor1.parent.beam === this.anchor2.parent.beam;
 
-			if (this.hasBeam) {
+			if (false) {//this.hasBeam) {
 				// If there is a beam then we don't need to draw anything except the text. The beam could either be above or below.
 				var beam = this.anchor1.parent.beam;
 				var left = beam.isAbove() ? this.anchor1.x + this.anchor1.w : this.anchor1.x;
@@ -101,7 +101,7 @@ var TripletElem;
 		var xTextPos;
 		renderer.controller.currentAbsEl = { tuneNumber: renderer.controller.engraver.tuneNumber, elemset: [], abcelem: { el_type: "triplet", startChar: -1, endChar: -1 }};
 		renderer.createElemSet({ klass: renderer.addClasses('triplet '+this.durationClass)});
-		if (this.hasBeam) {
+		if (false) {//this.hasBeam) {
 			var left = this.anchor1.parent.beam.isAbove() ? this.anchor1.x + this.anchor1.w : this.anchor1.x;
 			xTextPos = this.anchor1.parent.beam.xAtMidpoint(left, this.anchor2.x);
 		} else {
