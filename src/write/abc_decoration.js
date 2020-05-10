@@ -37,6 +37,44 @@ var Decoration;
 	var closeDecoration = function(voice, decoration, pitch, width, abselem, roomtaken, dir, minPitch) {
 		var yPos;
 		for (var i=0;i<decoration.length; i++) {
+            if (decoration[i]==="trem1") {
+                symbol = "rests.half";
+                yPos = pitch-4;
+				var deltaX = 0;
+					deltaX -= (glyphs.getSymbolWidth(symbol)/2);
+                var opts = {scaley:0.5};
+				abselem.addChild(new RelativeElement(symbol, deltaX, glyphs.getSymbolWidth(symbol), yPos, opts));
+            }
+            if (decoration[i]==="trem2") {
+                symbol = "rests.half";
+                yPos = pitch-4;
+				var deltaX = 0;
+					deltaX -= (glyphs.getSymbolWidth(symbol)/2);
+                var opts = {scaley:0.5};
+				abselem.addChild(new RelativeElement(symbol, deltaX, glyphs.getSymbolWidth(symbol), yPos, opts));
+				abselem.addChild(new RelativeElement(symbol, deltaX, glyphs.getSymbolWidth(symbol), yPos-1, opts));
+            }
+            if (decoration[i]==="trem3") {
+                symbol = "rests.half";
+                yPos = pitch-4;
+				var deltaX = 0;
+					deltaX -= (glyphs.getSymbolWidth(symbol)/2);
+                var opts = {scaley:0.5};
+				abselem.addChild(new RelativeElement(symbol, deltaX, glyphs.getSymbolWidth(symbol), yPos, opts));
+				abselem.addChild(new RelativeElement(symbol, deltaX, glyphs.getSymbolWidth(symbol), yPos-1, opts));
+				abselem.addChild(new RelativeElement(symbol, deltaX, glyphs.getSymbolWidth(symbol), yPos-2, opts));
+            }
+            if (decoration[i]==="trem4") {
+                symbol = "rests.half";
+                yPos = pitch-4;
+				var deltaX = 0;
+					deltaX -= (glyphs.getSymbolWidth(symbol)/2);
+                var opts = {scaley:0.5};
+				abselem.addChild(new RelativeElement(symbol, deltaX, glyphs.getSymbolWidth(symbol), yPos+1, opts));
+				abselem.addChild(new RelativeElement(symbol, deltaX, glyphs.getSymbolWidth(symbol), yPos, opts));
+				abselem.addChild(new RelativeElement(symbol, deltaX, glyphs.getSymbolWidth(symbol), yPos-1, opts));
+				abselem.addChild(new RelativeElement(symbol, deltaX, glyphs.getSymbolWidth(symbol), yPos-2, opts));
+            }
 			if (decoration[i]==="staccato" || decoration[i]==="tenuto" || decoration[i] === "accent") {
 				var symbol = "scripts." + decoration[i];
 				if (decoration[i] === "accent") symbol = "scripts.sforzato";
