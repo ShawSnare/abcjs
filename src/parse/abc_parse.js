@@ -655,7 +655,7 @@ var Parse = function() {
 		return el;
 	};
 
-	var pitches = {A: 5, B: 6, C: 0, D: 1, E: 2, F: 3, G: 4, a: 12, b: 13, c: 7, d: 8, e: 9, f: 10, g: 11};
+	var pitches = {A: 5, q: 5, B: 6, C: 0, D: 1, E: 2, F: 3, G: 4, a: 12, b: 13, c: 7, p: 7, d: 8, e: 9, f: 10, g: 11};
 	var rests = {x: 'invisible', y: 'spacer', z: 'rest', Z: 'multimeasure' };
 	var getCoreNote = function(line, index, el, canHaveBrokenRhythm) {
 		//var el = { startChar: index };
@@ -708,6 +708,8 @@ var Parse = function() {
 				case 'e':
 				case 'f':
 				case 'g':
+				case 'q':
+				case 'p':
 					if (state === 'startSlur' || state === 'sharp2' || state === 'flat2' || state === 'pitch') {
 						el.pitch = pitches[line.charAt(index)];
 						transpose.note(multilineVars, el);
