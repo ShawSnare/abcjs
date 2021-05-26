@@ -1060,7 +1060,7 @@ var addEndBeam = function(el) {
 	return el;
 };
 
-var pitches = {A: 5, B: 6, C: 0, D: 1, E: 2, F: 3, G: 4, a: 12, b: 13, c: 7, d: 8, e: 9, f: 10, g: 11};
+var pitches = {A: 5, q: 5, B: 6, C: 0, D: 1, E: 2, F: 3, G: 4, a: 12, b: 13, c: 7, p: 7, d: 8, e: 9, f: 10, g: 11};
 var rests = {x: 'invisible', X: 'invisible-multimeasure', y: 'spacer', z: 'rest', Z: 'multimeasure' };
 var getCoreNote = function(line, index, el, canHaveBrokenRhythm) {
 	//var el = { startChar: index };
@@ -1118,6 +1118,8 @@ var getCoreNote = function(line, index, el, canHaveBrokenRhythm) {
 			case 'e':
 			case 'f':
 			case 'g':
+			case 'q':
+			case 'p':
 				if (state === 'startSlur' || state === 'sharp2' || state === 'flat2' || state === 'pitch') {
 					el.pitch = pitches[line.charAt(index)];
 					transpose.note(multilineVars, el);
@@ -1130,8 +1132,8 @@ var getCoreNote = function(line, index, el, canHaveBrokenRhythm) {
 					} else
 						el.duration = multilineVars.default_length;
 					// If the clef is percussion, there is probably some translation of the pitch to a particular drum kit item.
-					if ((multilineVars.clef && multilineVars.clef.type === "perc") ||
-						(multilineVars.currentVoice && multilineVars.currentVoice.clef === "perc")) {
+					if ((multilineVars.clef && (multilineVars.clef.type === "perc" || multilineVars.clef.type === "swiss")) ||
+						(multilineVars.currentVoice && (multilineVars.currentVoice.clef === "perc" || multilineVars.clef.type === "swiss"))) {
 						var key = line.charAt(index);
 						if (el.accidental) {
 							var accMap = { 'dblflat': '__', 'flat': '_', 'natural': '=', 'sharp': '^', 'dblsharp': '^^'};

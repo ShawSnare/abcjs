@@ -124,6 +124,7 @@ AbstractEngraver.prototype.createABCLine = function(staffs, tempo) {
 	  if (hint)
 		  this.restoreState();
 	  hint = false;
+		this.swiss = staffs[s].clef.type === 'swiss';
     this.createABCStaff(staffgroup, staffs[s], tempo, s);
   }
   return staffgroup;
@@ -171,6 +172,9 @@ AbstractEngraver.prototype.createABCStaff = function(staffgroup, abcstaff, tempo
 	  if (voice.duplicate)
 		  voice.children = []; // we shouldn't reprint the above if we're reusing the same staff. We just created them to get the right spacing.
     var staffLines = abcstaff.clef.stafflines || abcstaff.clef.stafflines === 0 ? abcstaff.clef.stafflines : 5;
+		if (this.swiss) {
+    	staffLines = abcstaff.clef.stafflines || abcstaff.clef.stafflines === 0 ? abcstaff.clef.stafflines : 1;
+		}
     staffgroup.addVoice(voice,s,staffLines);
 	  var isSingleLineStaff = staffLines === 1;
 	  this.createABCVoice(abcstaff.voices[v],tempo, s, v, isSingleLineStaff, voice);
@@ -217,7 +221,7 @@ function getBeamGroup(abcline, pos) {
 
 AbstractEngraver.prototype.createABCVoice = function(abcline, tempo, s, v, isSingleLineStaff, voice) {
   this.popCrossLineElems(s,v);
-  this.stemdir = (this.isBagpipes)?"down":null;
+  this.stemdir = (this.isBagpipes || this.swiss)?"down":null;
   this.abcline = abcline;
   if (this.partstartelem) {
     this.partstartelem = new EndingElem("", null, null);
@@ -385,7 +389,7 @@ AbstractEngraver.prototype.createABCElement = function(isFirstStaff, isSingleLin
 	AbstractEngraver.prototype.createBeam = function (isSingleLineStaff, voice, elems) {
 		var abselemset = [];
 
-		var beamelem = new BeamElem(this.stemHeight * this.voiceScale, this.stemdir, this.flatBeams, elems[0]);
+		var beamelem = new BeamElem(this.stemHeight * this.voiceScale, this.stemdir, this.flatBeams || this.swiss, elems[0]);
 		if (hint) beamelem.setHint();
 		for (var i = 0; i < elems.length; i++) {
 			var elem = elems[i];
@@ -694,7 +698,7 @@ var ledgerLines = function(abselem, minPitch, maxPitch, isRest, symbolWidth, add
 
 			var hasStem = !nostem && durlog<=-1;
 			var ret = createNoteHead(abselem, c, elem.pitches[p],
-				{dir: dir, extrax: -roomTaken, flag: flag, dot: dot, dotshiftx: dotshiftx, scale: this.voiceScale, accidentalSlot: accidentalSlot, shouldExtendStem: !stemdir, printAccidentals: !voice.isPercussion});
+				{dir: dir, extrax: -roomTaken, flag: flag, dot: dot, dotshiftx: dotshiftx, scale: this.voiceScale, accidentalSlot: accidentalSlot, shouldExtendStem: !stemdir, printAccidentals: !voice.isPercussion}, this.stemHeight - 3);
 			symbolWidth = Math.max(glyphs.getSymbolWidth(c), symbolWidth);
 			abselem.extraw -= ret.extraLeft;
 			noteHead = ret.notehead;
@@ -711,7 +715,7 @@ var ledgerLines = function(abselem, minPitch, maxPitch, isRest, symbolWidth, add
 
 		// draw stem from the furthest note to a pitch above/below the stemmed note
 		if (hasStem) {
-			var stemHeight = Math.round(70 * this.voiceScale) / 10;
+			var stemHeight = Math.round((this.stemHeight - 3) * this.voiceScale);
 			var p1 = (dir==="down") ? elem.minpitch-stemHeight : elem.minpitch+1/3;
 			// PER added stemdir test to make the line meet the note.
 			if (p1>6 && !stemdir) p1=6;
@@ -821,7 +825,7 @@ AbstractEngraver.prototype.createNote = function(elem, nostem, isSingleLineStaff
   }
 
   if (elem.startTriplet) {
-    this.triplet = new TripletElem(elem.startTriplet, notehead, { flatBeams: this.flatBeams }); // above is opposite from case of slurs
+    this.triplet = new TripletElem(elem.startTriplet, notehead, { flatBeams: this.flatBeams || this.swiss, tiesAbove: this.swiss }); // above is opposite from case of slurs
   }
 
   if (elem.endTriplet && this.triplet) {

@@ -446,15 +446,17 @@ var pitchesToPerc = require('./pitches-to-perc');
 	}
 
 	function findNoteModifications(elem, velocity) {
-		var ret = { };
+		var ret = { accent: false };
 		if (elem.decoration) {
 			for (var d = 0; d < elem.decoration.length; d++) {
 				if (elem.decoration[d] === 'staccato')
 					ret.thisBreakBetweenNotes = 'staccato';
 				else if (elem.decoration[d] === 'tenuto')
 					ret.thisBreakBetweenNotes = 'tenuto';
-				else if (elem.decoration[d] === 'accent')
+				else if (elem.decoration[d] === 'accent') {
 					ret.velocity = Math.min(127, velocity * 1.5);
+					ret.accent = true
+				}
 				else if (elem.decoration[d] === 'trill')
 					ret.noteModification = "trill";
 				else if (elem.decoration[d] === 'lowermordent')
@@ -467,17 +469,25 @@ var pitchesToPerc = require('./pitches-to-perc');
 					ret.noteModification = "turn";
 				else if (elem.decoration[d] === 'roll')
 					ret.noteModification = "roll";
+				else if (elem.decoration[d] === '/')
+					ret.noteModification = "roll";
+				else if (elem.decoration[d] === '//')
+					ret.noteModification = "roll";
+				else if (elem.decoration[d] === '///')
+					ret.noteModification = "roll";
+				else if (elem.decoration[d] === '////')
+					ret.noteModification = "roll";
 			}
 		}
 		return ret;
 	}
 
-	function doModifiedNotes(noteModification, p) {
+	function doModifiedNotes(noteModification, p, accent, origVelocity, duration) {
 		var noteTime;
 		var numNotes;
 		var start = p.start;
 		var pp;
-		var runningDuration = p.duration;
+		var runningDuration = durationRounded(duration);
 		var shortestNote = durationRounded(1.0 / 32);
 
 		switch (noteModification) {
@@ -518,9 +528,14 @@ var pitchesToPerc = require('./pitches-to-perc');
 				break;
 			case "roll":
 				while (runningDuration > 0) {
-					currentTrack.push({ cmd: 'note', pitch: p.pitch, volume: p.volume, start: start, duration: shortestNote, gap: 0, instrument: currentInstrument, style: 'decoration' });
-					runningDuration -= shortestNote*2;
-					start += shortestNote*2;
+					if (accent) {
+						accent = false
+						currentTrack.push({ cmd: 'note', pitch: p.pitch, volume: p.volume, start: start, duration: shortestNote*0.85, gap: 0, instrument: currentInstrument, style: 'decoration' });
+					} else {
+						currentTrack.push({ cmd: 'note', pitch: p.pitch, volume: origVelocity/2, start: start, duration: shortestNote*0.85, gap: 0, instrument: currentInstrument, style: 'decoration' });
+					}
+					runningDuration -= shortestNote*0.85;
+					start += shortestNote*0.85;
 				}
 				break;
 		}
@@ -548,7 +563,7 @@ var pitchesToPerc = require('./pitches-to-perc');
 		if (elem.gracenotes && elem.pitches && elem.pitches.length > 0 && elem.pitches[0]) {
 			graces = processGraceNotes(elem.gracenotes, elem.pitches[0].duration);
 			if (elem.elem)
-				elem.elem.midiGraceNotePitches = writeGraceNotes(graces, timeToRealTime(elem.time), velocity*2/3, currentInstrument); // make the graces a little quieter.
+				elem.elem.midiGraceNotePitches = writeGraceNotes(graces, timeToRealTime(elem.time), velocity, currentInstrument); // make the graces a little quieter.
 		}
 
 		// The beat fraction is the note that gets a beat (.25 is a quarter note)
@@ -588,6 +603,7 @@ var pitchesToPerc = require('./pitches-to-perc');
 			var ret = findNoteModifications(elem, velocity);
 			if (ret.thisBreakBetweenNotes)
 				thisBreakBetweenNotes = ret.thisBreakBetweenNotes;
+			var origVelocity = velocity
 			if (ret.velocity)
 				velocity = ret.velocity;
 
@@ -624,13 +640,21 @@ var pitchesToPerc = require('./pitches-to-perc');
 				var p = { cmd: 'note', pitch: actualPitch, volume: velocity, start: timeToRealTime(elem.time), duration: durationRounded(note.duration), instrument: currentInstrument };
 				p = adjustForMicroTone(p);
 				if (elem.gracenotes) {
-					p.duration = p.duration / 2;
-					p.start = p.start + p.duration;
+					if (elem.gracenotes.length == 1) {
+						p.duration = p.duration / 32
+						p.start = p.start + (p.duration*elem.gracenotes.length);
+					} else if (elem.gracenotes.length == 2) {
+						p.duration = p.duration / 64
+						p.start = p.start + (p.duration*(elem.gracenotes.length-1))/2;
+					} else {
+						p.duration = 1/16
+						p.start = p.start + (p.duration)
+					}
 				}
 				if (elem.elem)
 					elem.elem.midiPitches.push(p);
 				if (ret.noteModification) {
-					doModifiedNotes(ret.noteModification, p);
+					doModifiedNotes(ret.noteModification, p, ret.accent, origVelocity, note.duration);
 				} else {
 					if (slurCount > 0)
 						p.endType = 'tenuto';
@@ -748,6 +772,9 @@ var pitchesToPerc = require('./pitches-to-perc');
 	function writeGraceNotes(graces, start, velocity, currentInstrument) {
 		var midiGrace = [];
 		velocity = Math.round(velocity)
+		if (graces.length == 2) {
+			graces.pop()
+		}
 		for (var g = 0; g < graces.length; g++) {
 			var gp = graces[g];
 			currentTrack.push({cmd: 'note', pitch: gp.pitch, volume: velocity, start: start, duration: gp.duration, gap: 0, instrument:currentInstrument, style: 'grace'});

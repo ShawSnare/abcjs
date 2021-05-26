@@ -101,11 +101,12 @@ var Decoration = function Decoration() {
 			return pitch;
 		}
 		function compoundDecoration(symbol, count) {
-			var placement = (dir === 'down') ? lowestPitch()+1:highestPitch()+9;
+			var placement = (dir === 'down') ? lowestPitch()+0.5:highestPitch()+9;
 			if (dir !== 'down' && count === 1)
 				placement--;
 			var deltaX = width/2;
 			deltaX += (dir === 'down') ? -5 : 3;
+			placement += ((count - 1) * 0.5);
 			for (var i = 0; i < count; i++) {
 				placement -= 1;
 				abselem.addFixedX(new RelativeElement(symbol, deltaX, glyphs.getSymbolWidth(symbol), placement));

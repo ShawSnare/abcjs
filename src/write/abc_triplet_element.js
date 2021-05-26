@@ -7,6 +7,7 @@ var TripletElem = function TripletElem(number, anchor1, options) {
 		this.durationClass = ('d'+(Math.round(anchor1.parent.durationClass*1000)/1000)).replace(/\./, '-');
 		this.middleElems = []; // This is to calculate the highest interior pitch. It is used to make sure that the drawn bracket never crosses a really high middle note.
 		this.flatBeams = options.flatBeams;
+		this.tiesAbove = options.tiesAbove;
 	};
 
 	TripletElem.prototype.isClosed = function() {

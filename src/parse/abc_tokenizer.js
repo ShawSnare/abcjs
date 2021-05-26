@@ -134,6 +134,8 @@ var Tokenizer = function(lines, multilineVars) {
 			name = 'none';
 		else if (parseCommon.startsWith(strClef, 'perc'))
 			name = 'perc';
+		else if (parseCommon.startsWith(strClef, 'swiss'))
+			name = 'swiss';
 		else if (!bExplicitOnly && (needsClef && parseCommon.startsWith(strClef, 'C')))
 			name = 'tenor';
 		else if (!bExplicitOnly && (needsClef && parseCommon.startsWith(strClef, 'F')))

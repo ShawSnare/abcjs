@@ -163,10 +163,10 @@ var parseCommon = require("../parse/abc_common");
 								voices[voiceNumber].unshift({el_type: "name", trackName: voiceName});
 						}
 						// Negate any transposition for the percussion staff.
-						if (transpose && staff.clef.type === "perc")
+						if (transpose && (staff.clef.type === "perc" || staff.clef.type === "swiss"))
 							voices[voiceNumber].push({ el_type: 'transpose', transpose: 0 });
 
-						if (staff.clef && staff.clef.type === 'perc' && !channelExplicitlySet) {
+						if (staff.clef && (staff.clef.type === 'perc' || staff.clef.type === "swiss") && !channelExplicitlySet) {
 							for (var cl = 0; cl < voices[voiceNumber].length; cl++) {
 								if (voices[voiceNumber][cl].el_type === 'instrument')
 									voices[voiceNumber][cl].program = PERCUSSION_PROGRAM;

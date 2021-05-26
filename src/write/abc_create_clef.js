@@ -24,7 +24,10 @@ var createClef = function(elem, tuneNumber) {
 			case 'bass-8': clef="clefs.F"; octave = -1; break;
 			case 'alto-8': clef="clefs.C"; octave = -1; break;
 			case 'none': return null;
-			case 'perc': clef="clefs.perc"; break;
+			case 'perc':
+			case 'swiss':
+				clef="clefs.perc";
+				break;
 			default: abselem.addFixed(new RelativeElement("clef="+elem.type, 0, 0, undefined, {type:"debug"}));
 		}
 		// if (elem.verticalPos) {

@@ -1701,12 +1701,12 @@ var Tune = function Tune() {
     }
 
     if (!bpm) {
-      bpm = 180; // Compensate for compound meter, where the beat isn't a beat.
+      bpm = 72; // Compensate for compound meter, where the beat isn't a beat.
 
       var meter = this.getMeterFraction();
 
       if (meter && meter.num !== 3 && meter.num % 3 === 0) {
-        bpm = 120;
+        bpm = 72;
       }
     }
 
@@ -2850,7 +2850,7 @@ var Parse = function Parse() {
       this.hasMainTitle = false;
       this.default_length = 0.125;
       this.clef = {
-        type: 'treble',
+        type: 'swiss',
         verticalPos: 0
       };
       this.next_note_duration = 0;
@@ -5918,6 +5918,11 @@ var parseKeyVoice = {};
       pitch: 6,
       mid: 0
     },
+    'swiss': {
+      clef: 'swiss',
+      pitch: 6,
+      mid: 0
+    },
     'none': {
       clef: 'none',
       mid: 0
@@ -6579,6 +6584,7 @@ var parseKeyVoice = {};
         case "alto":
         case "tenor":
         case "perc":
+        case "swiss":
         case "none":
           // clef is [clef=] [⟨clef type⟩] [⟨line number⟩] [+8|-8]
           var clef = tokens.shift();
@@ -6589,6 +6595,7 @@ var parseKeyVoice = {};
             case 'alto':
             case 'bass':
             case 'perc':
+            case 'swiss':
             case 'none':
               break;
 
@@ -6760,6 +6767,7 @@ var parseKeyVoice = {};
           case 'tenor':
           case 'alto':
           case 'perc':
+          case 'swiss':
           case 'none':
           case 'treble\'':
           case 'bass\'':
@@ -8019,6 +8027,7 @@ var addEndBeam = function addEndBeam(el) {
 
 var pitches = {
   A: 5,
+  q: 5,
   B: 6,
   C: 0,
   D: 1,
@@ -8028,6 +8037,7 @@ var pitches = {
   a: 12,
   b: 13,
   c: 7,
+  p: 7,
   d: 8,
   e: 9,
   f: 10,
@@ -8129,6 +8139,8 @@ var getCoreNote = function getCoreNote(line, index, el, canHaveBrokenRhythm) {
       case 'e':
       case 'f':
       case 'g':
+      case 'q':
+      case 'p':
         if (state === 'startSlur' || state === 'sharp2' || state === 'flat2' || state === 'pitch') {
           el.pitch = pitches[line.charAt(index)];
           transpose.note(multilineVars, el);
@@ -8141,7 +8153,7 @@ var getCoreNote = function getCoreNote(line, index, el, canHaveBrokenRhythm) {
           } else el.duration = multilineVars.default_length; // If the clef is percussion, there is probably some translation of the pitch to a particular drum kit item.
 
 
-          if (multilineVars.clef && multilineVars.clef.type === "perc" || multilineVars.currentVoice && multilineVars.currentVoice.clef === "perc") {
+          if (multilineVars.clef && (multilineVars.clef.type === "perc" || multilineVars.clef.type === "swiss") || multilineVars.currentVoice && (multilineVars.currentVoice.clef === "perc" || multilineVars.clef.type === "swiss")) {
             var key = line.charAt(index);
 
             if (el.accidental) {
@@ -8617,7 +8629,7 @@ var Tokenizer = function Tokenizer(lines, multilineVars) {
     }
 
     var name = null;
-    if (parseCommon.startsWith(strClef, 'treble')) name = 'treble';else if (parseCommon.startsWith(strClef, 'bass3')) name = 'bass3';else if (parseCommon.startsWith(strClef, 'bass')) name = 'bass';else if (parseCommon.startsWith(strClef, 'tenor')) name = 'tenor';else if (parseCommon.startsWith(strClef, 'alto2')) name = 'alto2';else if (parseCommon.startsWith(strClef, 'alto1')) name = 'alto1';else if (parseCommon.startsWith(strClef, 'alto')) name = 'alto';else if (!bExplicitOnly && needsClef && parseCommon.startsWith(strClef, 'none')) name = 'none';else if (parseCommon.startsWith(strClef, 'perc')) name = 'perc';else if (!bExplicitOnly && needsClef && parseCommon.startsWith(strClef, 'C')) name = 'tenor';else if (!bExplicitOnly && needsClef && parseCommon.startsWith(strClef, 'F')) name = 'bass';else if (!bExplicitOnly && needsClef && parseCommon.startsWith(strClef, 'G')) name = 'treble';else return {
+    if (parseCommon.startsWith(strClef, 'treble')) name = 'treble';else if (parseCommon.startsWith(strClef, 'bass3')) name = 'bass3';else if (parseCommon.startsWith(strClef, 'bass')) name = 'bass';else if (parseCommon.startsWith(strClef, 'tenor')) name = 'tenor';else if (parseCommon.startsWith(strClef, 'alto2')) name = 'alto2';else if (parseCommon.startsWith(strClef, 'alto1')) name = 'alto1';else if (parseCommon.startsWith(strClef, 'alto')) name = 'alto';else if (!bExplicitOnly && needsClef && parseCommon.startsWith(strClef, 'none')) name = 'none';else if (parseCommon.startsWith(strClef, 'perc')) name = 'perc';else if (parseCommon.startsWith(strClef, 'swiss')) name = 'swiss';else if (!bExplicitOnly && needsClef && parseCommon.startsWith(strClef, 'C')) name = 'tenor';else if (!bExplicitOnly && needsClef && parseCommon.startsWith(strClef, 'F')) name = 'bass';else if (!bExplicitOnly && needsClef && parseCommon.startsWith(strClef, 'G')) name = 'treble';else return {
       len: i + 5,
       warn: "Unknown clef specified: " + strOrig
     };
@@ -10078,7 +10090,14 @@ var TuneBuilder = function TuneBuilder(tune) {
     tune.version = "1.1.0";
     tune.media = "screen";
     tune.metaText = {};
-    tune.formatting = {};
+    tune.formatting = {
+      midi: {
+        drummap: {
+          p: 38,
+          q: 38
+        }
+      }
+    };
     tune.lines = [];
     tune.staffNum = 0;
     tune.voiceNum = 0;
@@ -12094,23 +12113,28 @@ var pitchesToPerc = __webpack_require__(/*! ./pitches-to-perc */ "./src/synth/pi
   }
 
   function findNoteModifications(elem, velocity) {
-    var ret = {};
+    var ret = {
+      accent: false
+    };
 
     if (elem.decoration) {
       for (var d = 0; d < elem.decoration.length; d++) {
-        if (elem.decoration[d] === 'staccato') ret.thisBreakBetweenNotes = 'staccato';else if (elem.decoration[d] === 'tenuto') ret.thisBreakBetweenNotes = 'tenuto';else if (elem.decoration[d] === 'accent') ret.velocity = Math.min(127, velocity * 1.5);else if (elem.decoration[d] === 'trill') ret.noteModification = "trill";else if (elem.decoration[d] === 'lowermordent') ret.noteModification = "lowermordent";else if (elem.decoration[d] === 'uppermordent') ret.noteModification = "mordent";else if (elem.decoration[d] === 'mordent') ret.noteModification = "mordent";else if (elem.decoration[d] === 'turn') ret.noteModification = "turn";else if (elem.decoration[d] === 'roll') ret.noteModification = "roll";
+        if (elem.decoration[d] === 'staccato') ret.thisBreakBetweenNotes = 'staccato';else if (elem.decoration[d] === 'tenuto') ret.thisBreakBetweenNotes = 'tenuto';else if (elem.decoration[d] === 'accent') {
+          ret.velocity = Math.min(127, velocity * 1.5);
+          ret.accent = true;
+        } else if (elem.decoration[d] === 'trill') ret.noteModification = "trill";else if (elem.decoration[d] === 'lowermordent') ret.noteModification = "lowermordent";else if (elem.decoration[d] === 'uppermordent') ret.noteModification = "mordent";else if (elem.decoration[d] === 'mordent') ret.noteModification = "mordent";else if (elem.decoration[d] === 'turn') ret.noteModification = "turn";else if (elem.decoration[d] === 'roll') ret.noteModification = "roll";else if (elem.decoration[d] === '/') ret.noteModification = "roll";else if (elem.decoration[d] === '//') ret.noteModification = "roll";else if (elem.decoration[d] === '///') ret.noteModification = "roll";else if (elem.decoration[d] === '////') ret.noteModification = "roll";
       }
     }
 
     return ret;
   }
 
-  function doModifiedNotes(noteModification, p) {
+  function doModifiedNotes(noteModification, p, accent, origVelocity, duration) {
     var noteTime;
     var numNotes;
     var start = p.start;
     var pp;
-    var runningDuration = p.duration;
+    var runningDuration = durationRounded(duration);
     var shortestNote = durationRounded(1.0 / 32);
 
     switch (noteModification) {
@@ -12262,18 +12286,33 @@ var pitchesToPerc = __webpack_require__(/*! ./pitches-to-perc */ "./src/synth/pi
 
       case "roll":
         while (runningDuration > 0) {
-          currentTrack.push({
-            cmd: 'note',
-            pitch: p.pitch,
-            volume: p.volume,
-            start: start,
-            duration: shortestNote,
-            gap: 0,
-            instrument: currentInstrument,
-            style: 'decoration'
-          });
-          runningDuration -= shortestNote * 2;
-          start += shortestNote * 2;
+          if (accent) {
+            accent = false;
+            currentTrack.push({
+              cmd: 'note',
+              pitch: p.pitch,
+              volume: p.volume,
+              start: start,
+              duration: shortestNote * 0.85,
+              gap: 0,
+              instrument: currentInstrument,
+              style: 'decoration'
+            });
+          } else {
+            currentTrack.push({
+              cmd: 'note',
+              pitch: p.pitch,
+              volume: origVelocity / 2,
+              start: start,
+              duration: shortestNote * 0.85,
+              gap: 0,
+              instrument: currentInstrument,
+              style: 'decoration'
+            });
+          }
+
+          runningDuration -= shortestNote * 0.85;
+          start += shortestNote * 0.85;
         }
 
         break;
@@ -12299,7 +12338,7 @@ var pitchesToPerc = __webpack_require__(/*! ./pitches-to-perc */ "./src/synth/pi
 
     if (elem.gracenotes && elem.pitches && elem.pitches.length > 0 && elem.pitches[0]) {
       graces = processGraceNotes(elem.gracenotes, elem.pitches[0].duration);
-      if (elem.elem) elem.elem.midiGraceNotePitches = writeGraceNotes(graces, timeToRealTime(elem.time), velocity * 2 / 3, currentInstrument); // make the graces a little quieter.
+      if (elem.elem) elem.elem.midiGraceNotePitches = writeGraceNotes(graces, timeToRealTime(elem.time), velocity, currentInstrument); // make the graces a little quieter.
     } // The beat fraction is the note that gets a beat (.25 is a quarter note)
     // The tempo is in minutes and we want to get to milliseconds.
     // If the element is inside a repeat, there may be more than one value. If there is one value,
@@ -12341,6 +12380,7 @@ var pitchesToPerc = __webpack_require__(/*! ./pitches-to-perc */ "./src/synth/pi
       var thisBreakBetweenNotes = '';
       var ret = findNoteModifications(elem, velocity);
       if (ret.thisBreakBetweenNotes) thisBreakBetweenNotes = ret.thisBreakBetweenNotes;
+      var origVelocity = velocity;
       if (ret.velocity) velocity = ret.velocity; // TODO-PER: Can also make a different sound on style=x and style=harmonic
 
       var ePitches = elem.pitches;
@@ -12384,14 +12424,22 @@ var pitchesToPerc = __webpack_require__(/*! ./pitches-to-perc */ "./src/synth/pi
         p = adjustForMicroTone(p);
 
         if (elem.gracenotes) {
-          p.duration = p.duration / 2;
-          p.start = p.start + p.duration;
+          if (elem.gracenotes.length == 1) {
+            p.duration = p.duration / 32;
+            p.start = p.start + p.duration * elem.gracenotes.length;
+          } else if (elem.gracenotes.length == 2) {
+            p.duration = p.duration / 64;
+            p.start = p.start + p.duration * (elem.gracenotes.length - 1) / 2;
+          } else {
+            p.duration = 1 / 16;
+            p.start = p.start + p.duration;
+          }
         }
 
         if (elem.elem) elem.elem.midiPitches.push(p);
 
         if (ret.noteModification) {
-          doModifiedNotes(ret.noteModification, p);
+          doModifiedNotes(ret.noteModification, p, ret.accent, origVelocity, note.duration);
         } else {
           if (slurCount > 0) p.endType = 'tenuto';else if (thisBreakBetweenNotes) p.endType = thisBreakBetweenNotes;
 
@@ -12549,6 +12597,10 @@ var pitchesToPerc = __webpack_require__(/*! ./pitches-to-perc */ "./src/synth/pi
   function writeGraceNotes(graces, start, velocity, currentInstrument) {
     var midiGrace = [];
     velocity = Math.round(velocity);
+
+    if (graces.length == 2) {
+      graces.pop();
+    }
 
     for (var g = 0; g < graces.length; g++) {
       var gp = graces[g];
@@ -13752,12 +13804,12 @@ var parseCommon = __webpack_require__(/*! ../parse/abc_common */ "./src/parse/ab
             } // Negate any transposition for the percussion staff.
 
 
-            if (transpose && staff.clef.type === "perc") voices[voiceNumber].push({
+            if (transpose && (staff.clef.type === "perc" || staff.clef.type === "swiss")) voices[voiceNumber].push({
               el_type: 'transpose',
               transpose: 0
             });
 
-            if (staff.clef && staff.clef.type === 'perc' && !channelExplicitlySet) {
+            if (staff.clef && (staff.clef.type === 'perc' || staff.clef.type === "swiss") && !channelExplicitlySet) {
               for (var cl = 0; cl < voices[voiceNumber].length; cl++) {
                 if (voices[voiceNumber][cl].el_type === 'instrument') voices[voiceNumber][cl].program = PERCUSSION_PROGRAM;
               }
@@ -16761,6 +16813,7 @@ AbstractEngraver.prototype.createABCLine = function (staffs, tempo) {
   for (var s = 0; s < staffs.length; s++) {
     if (hint) this.restoreState();
     hint = false;
+    this.swiss = staffs[s].clef.type === 'swiss';
     this.createABCStaff(staffgroup, staffs[s], tempo, s);
   }
 
@@ -16818,6 +16871,11 @@ AbstractEngraver.prototype.createABCStaff = function (staffgroup, abcstaff, temp
     if (voice.duplicate) voice.children = []; // we shouldn't reprint the above if we're reusing the same staff. We just created them to get the right spacing.
 
     var staffLines = abcstaff.clef.stafflines || abcstaff.clef.stafflines === 0 ? abcstaff.clef.stafflines : 5;
+
+    if (this.swiss) {
+      staffLines = abcstaff.clef.stafflines || abcstaff.clef.stafflines === 0 ? abcstaff.clef.stafflines : 1;
+    }
+
     staffgroup.addVoice(voice, s, staffLines);
     var isSingleLineStaff = staffLines === 1;
     this.createABCVoice(abcstaff.voices[v], tempo, s, v, isSingleLineStaff, voice);
@@ -16869,7 +16927,7 @@ function getBeamGroup(abcline, pos) {
 
 AbstractEngraver.prototype.createABCVoice = function (abcline, tempo, s, v, isSingleLineStaff, voice) {
   this.popCrossLineElems(s, v);
-  this.stemdir = this.isBagpipes ? "down" : null;
+  this.stemdir = this.isBagpipes || this.swiss ? "down" : null;
   this.abcline = abcline;
 
   if (this.partstartelem) {
@@ -17076,7 +17134,7 @@ function setAveragePitch(elem) {
 
 AbstractEngraver.prototype.createBeam = function (isSingleLineStaff, voice, elems) {
   var abselemset = [];
-  var beamelem = new BeamElem(this.stemHeight * this.voiceScale, this.stemdir, this.flatBeams, elems[0]);
+  var beamelem = new BeamElem(this.stemHeight * this.voiceScale, this.stemdir, this.flatBeams || this.swiss, elems[0]);
   if (hint) beamelem.setHint();
 
   for (var i = 0; i < elems.length; i++) {
@@ -17457,7 +17515,7 @@ AbstractEngraver.prototype.addNoteToAbcElement = function (abselem, elem, dot, s
       accidentalSlot: accidentalSlot,
       shouldExtendStem: !stemdir,
       printAccidentals: !voice.isPercussion
-    });
+    }, this.stemHeight - 3);
     symbolWidth = Math.max(glyphs.getSymbolWidth(c), symbolWidth);
     abselem.extraw -= ret.extraLeft;
     noteHead = ret.notehead;
@@ -17475,7 +17533,7 @@ AbstractEngraver.prototype.addNoteToAbcElement = function (abselem, elem, dot, s
 
 
   if (hasStem) {
-    var stemHeight = Math.round(70 * this.voiceScale) / 10;
+    var stemHeight = Math.round((this.stemHeight - 3) * this.voiceScale);
     var p1 = dir === "down" ? elem.minpitch - stemHeight : elem.minpitch + 1 / 3; // PER added stemdir test to make the line meet the note.
 
     if (p1 > 6 && !stemdir) p1 = 6;
@@ -17614,7 +17672,8 @@ AbstractEngraver.prototype.createNote = function (elem, nostem, isSingleLineStaf
 
   if (elem.startTriplet) {
     this.triplet = new TripletElem(elem.startTriplet, notehead, {
-      flatBeams: this.flatBeams
+      flatBeams: this.flatBeams || this.swiss,
+      tiesAbove: this.swiss
     }); // above is opposite from case of slurs
   }
 
@@ -18066,6 +18125,7 @@ var createClef = function createClef(elem, tuneNumber) {
       return null;
 
     case 'perc':
+    case 'swiss':
       clef = "clefs.perc";
       break;
 
@@ -18214,6 +18274,7 @@ var glyphs = __webpack_require__(/*! ./abc_glyphs */ "./src/write/abc_glyphs.js"
 var RelativeElement = __webpack_require__(/*! ./abc_relative_element */ "./src/write/abc_relative_element.js");
 
 var createNoteHead = function createNoteHead(abselem, c, pitchelem, options) {
+  var stemHeight = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 7;
   if (!options) options = {};
   var dir = options.dir !== undefined ? options.dir : null;
   var headx = options.headx !== undefined ? options.headx : 0;
@@ -18252,7 +18313,7 @@ var createNoteHead = function createNoteHead(abselem, c, pitchelem, options) {
     notehead.stemDir = dir;
 
     if (flag) {
-      var pos = pitch + (dir === "down" ? -7 : 7) * scale; // if this is a regular note, (not grace or tempo indicator) then the stem will have been stretched to the middle line if it is far from the center.
+      var pos = pitch + (dir === "down" ? -stemHeight : stemHeight) * scale; // if this is a regular note, (not grace or tempo indicator) then the stem will have been stretched to the middle line if it is far from the center.
 
       if (shouldExtendStem) {
         if (dir === "down" && pos > 6) pos = 6;
@@ -18600,10 +18661,11 @@ var compoundDecoration = function compoundDecoration(decoration, pitch, width, a
   }
 
   function compoundDecoration(symbol, count) {
-    var placement = dir === 'down' ? lowestPitch() + 1 : highestPitch() + 9;
+    var placement = dir === 'down' ? lowestPitch() + 0.5 : highestPitch() + 9;
     if (dir !== 'down' && count === 1) placement--;
     var deltaX = width / 2;
     deltaX += dir === 'down' ? -5 : 3;
+    placement += (count - 1) * 0.5;
 
     for (var i = 0; i < count; i++) {
       placement -= 1;
@@ -20057,7 +20119,7 @@ Renderer.prototype.initVerticalSpace = function () {
     // Set the slur height factor.
     staffSeparation: 61.33,
     // Do not put a staff system closer than <unit> from the previous system.
-    stemHeight: 26.67 + 10,
+    stemHeight: 26.67 + 20,
     // Set the stem height.
     subtitle: 3.78,
     // Set the vertical space above the subtitle.
@@ -20549,6 +20611,7 @@ var TripletElem = function TripletElem(number, anchor1, options) {
   this.middleElems = []; // This is to calculate the highest interior pitch. It is used to make sure that the drawn bracket never crosses a really high middle note.
 
   this.flatBeams = options.flatBeams;
+  this.tiesAbove = options.tiesAbove;
 };
 
 TripletElem.prototype.isClosed = function () {
@@ -23408,7 +23471,7 @@ var layoutBeam = function layoutBeam(beam) {
   var referencePitch = beam.stemsUp ? firstElement.abcelem.maxpitch : firstElement.abcelem.minpitch;
   minStemHeight = minStem(firstElement, beam.stemsUp, referencePitch, minStemHeight);
   minStemHeight = minStem(lastElement, beam.stemsUp, referencePitch, minStemHeight);
-  minStemHeight = Math.max(beam.stemHeight, minStemHeight + 3); // TODO-PER: The 3 is the width of a 16th beam. The actual height of the beam should be used instead.
+  minStemHeight = Math.max(beam.stemHeight, minStemHeight); // TODO-PER: The 3 is the width of a 16th beam. The actual height of the beam should be used instead.
 
   var yPos = calcYPos(beam.average, beam.elems.length, minStemHeight, beam.stemsUp, firstElement.abcelem.averagepitch, lastElement.abcelem.averagepitch, beam.isflat, beam.min, beam.max, beam.isgrace);
   var xPos = calcXPos(beam.stemsUp, firstElement, lastElement);
@@ -23517,8 +23580,8 @@ function createStems(elems, asc, beam, dy, mainNote) {
 
     var x = furthestHead.x + dx; // this is now the actual x location in pixels.
 
-    var bary = getBarYAt(beam.startX, beam.startY, beam.endX, beam.endY, x);
-    var lineWidth = asc ? -0.6 : 0.6;
+    var bary = getBarYAt(beam.startX, beam.startY, beam.endX, beam.endY, x) - 0.5;
+    var lineWidth = asc ? -1 : 1;
     if (!asc) bary -= dy / 2 / spacing.STEP; // TODO-PER: This is just a fudge factor so the down-pointing stems don't overlap.
 
     if (isGrace) dx += elem.heads[0].dx; // TODO-PER-HACK: One type of note head has a different placement of the stem. This should be more generically calculated:
@@ -24226,7 +24289,7 @@ var getBarYAt = __webpack_require__(/*! ./getBarYAt */ "./src/write/layout/getBa
 function layoutTriplet(element) {
   // TODO end and beginning of line (PER: P.S. I'm not sure this can happen: I think the parser will always specify both the start and end points.)
   if (element.anchor1 && element.anchor2) {
-    element.hasBeam = !!element.anchor1.parent.beam && element.anchor1.parent.beam === element.anchor2.parent.beam;
+    element.hasBeam = !element.tiesAbove && !!element.anchor1.parent.beam && element.anchor1.parent.beam === element.anchor2.parent.beam;
     var beam = element.anchor1.parent.beam; // if hasBeam is true, then the first and last element in the triplet have the same beam.
     // We also need to check if the beam doesn't contain other notes so that `(3 dcdcc` will do a bracket.
 

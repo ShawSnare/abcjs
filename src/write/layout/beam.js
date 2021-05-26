@@ -14,7 +14,7 @@ var layoutBeam = function(beam) {
 	var referencePitch = beam.stemsUp ? firstElement.abcelem.maxpitch : firstElement.abcelem.minpitch;
 	minStemHeight = minStem(firstElement, beam.stemsUp, referencePitch, minStemHeight);
 	minStemHeight = minStem(lastElement, beam.stemsUp, referencePitch, minStemHeight);
-	minStemHeight = Math.max(beam.stemHeight, minStemHeight + 3); // TODO-PER: The 3 is the width of a 16th beam. The actual height of the beam should be used instead.
+	minStemHeight = Math.max(beam.stemHeight, minStemHeight); // TODO-PER: The 3 is the width of a 16th beam. The actual height of the beam should be used instead.
 	var yPos = calcYPos(beam.average, beam.elems.length, minStemHeight, beam.stemsUp, firstElement.abcelem.averagepitch, lastElement.abcelem.averagepitch, beam.isflat, beam.min, beam.max, beam.isgrace);
 	var xPos = calcXPos(beam.stemsUp, firstElement, lastElement);
 	beam.addBeam({ startX: xPos[0], endX: xPos[1], startY: yPos[0], endY: yPos[1], dy: dy });
@@ -117,8 +117,8 @@ function createStems(elems, asc, beam, dy, mainNote) {
 		var pitch = furthestHead.pitch + ((asc) ? ovalDelta : -ovalDelta);
 		var dx = asc ? furthestHead.w : 0; // down-pointing stems start on the left side of the note, up-pointing stems start on the right side, so we offset by the note width.
 		var x = furthestHead.x + dx; // this is now the actual x location in pixels.
-		var bary = getBarYAt(beam.startX, beam.startY, beam.endX, beam.endY, x);
-		var lineWidth = (asc) ? -0.6 : 0.6;
+		var bary = getBarYAt(beam.startX, beam.startY, beam.endX, beam.endY, x) - 0.5;
+		var lineWidth = (asc) ? -1 : 1;
 		if (!asc)
 			bary -= (dy / 2) / spacing.STEP;	// TODO-PER: This is just a fudge factor so the down-pointing stems don't overlap.
 		if (isGrace)

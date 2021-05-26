@@ -181,6 +181,7 @@ var parseKeyVoice = {};
 		'treble4': { clef: 'treble', pitch: 8, mid: -4 },
 		'treble5': { clef: 'treble', pitch: 10, mid: -6 },
 		'perc': { clef: 'perc', pitch: 6, mid: 0 },
+		'swiss': { clef: 'swiss', pitch: 6, mid: 0 },
 		'none': { clef: 'none', mid: 0 },
 		'bass': { clef: 'bass', pitch: 8, mid: -12 },
 		'bass+8': { clef: 'bass+8', pitch: 8, mid: -12 },
@@ -581,6 +582,7 @@ var parseKeyVoice = {};
 				case "alto":
 				case "tenor":
 				case "perc":
+				case "swiss":
 				case "none":
 					// clef is [clef=] [⟨clef type⟩] [⟨line number⟩] [+8|-8]
 					var clef = tokens.shift();
@@ -590,6 +592,7 @@ var parseKeyVoice = {};
 						case 'alto':
 						case 'bass':
 						case 'perc':
+						case 'swiss':
 						case 'none':
 							break;
 						case 'C': clef.token = 'alto'; break;
@@ -750,6 +753,7 @@ var parseKeyVoice = {};
 					case 'tenor':
 					case 'alto':
 					case 'perc':
+					case 'swiss':
 					case 'none':
 					case 'treble\'':
 					case 'bass\'':

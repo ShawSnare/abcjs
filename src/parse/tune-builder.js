@@ -8,7 +8,14 @@ var TuneBuilder = function(tune) {
 		tune.version = "1.1.0";
 		tune.media = "screen";
 		tune.metaText = {};
-		tune.formatting = {};
+		tune.formatting = {
+			midi: {
+				drummap: {
+					p: 38,
+					q: 38,
+				}
+			}
+		};
 		tune.lines = [];
 		tune.staffNum = 0;
 		tune.voiceNum = 0;

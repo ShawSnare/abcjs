@@ -3,7 +3,7 @@ var getBarYAt = require('./getBarYAt');
 function layoutTriplet(element) {
 	// TODO end and beginning of line (PER: P.S. I'm not sure this can happen: I think the parser will always specify both the start and end points.)
 	if (element.anchor1 && element.anchor2) {
-		element.hasBeam = !!element.anchor1.parent.beam && element.anchor1.parent.beam === element.anchor2.parent.beam;
+		element.hasBeam = !element.tiesAbove && !!element.anchor1.parent.beam && element.anchor1.parent.beam === element.anchor2.parent.beam;
 		var beam = element.anchor1.parent.beam;
 		// if hasBeam is true, then the first and last element in the triplet have the same beam.
 		// We also need to check if the beam doesn't contain other notes so that `(3 dcdcc` will do a bracket.

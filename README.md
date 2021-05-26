@@ -1,3 +1,13 @@
+This fork of abcjs is used to add a new clef which is not part of abc notation standard.
+This clef is the "swiss" clef. it can be added to any voice or used as the default clef.
+The Swiss clef is intended for rendering a common form of swiss drumming notation made popular by Fritz Berger.
+Essentially this consists of:
+  - Stems are always down
+  - Triplet beams are drawn above.
+
+If needed more additions can be added.
+My intention is to keep this fork always one commit ahead of the upstream repo.
+
 ![abcjs](https://paulrosen.github.io/abcjs/img/abcjs_comp_extended_08.svg)
 
 # Javascript library for rendering standard music notation in a browser.

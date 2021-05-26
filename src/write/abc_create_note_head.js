@@ -1,7 +1,7 @@
 var glyphs = require('./abc_glyphs');
 var RelativeElement = require('./abc_relative_element');
 
-var createNoteHead = function(abselem, c, pitchelem, options) {
+var createNoteHead = function(abselem, c, pitchelem, options, stemHeight = 7) {
 	if (!options) options = {};
 	var dir = (options.dir !== undefined) ? options.dir : null;
 	var headx = (options.headx !== undefined) ? options.headx : 0;
@@ -34,7 +34,7 @@ var createNoteHead = function(abselem, c, pitchelem, options) {
 			notehead = new RelativeElement(c, shiftheadx, glyphs.getSymbolWidth(c)*scale, pitch, opts);
 			notehead.stemDir = dir;
 			if (flag) {
-				var pos = pitch+((dir==="down")?-7:7)*scale;
+				var pos = pitch+((dir==="down")?-stemHeight:stemHeight)*scale;
 				// if this is a regular note, (not grace or tempo indicator) then the stem will have been stretched to the middle line if it is far from the center.
 				if (shouldExtendStem) {
 					if (dir==="down" && pos > 6)
